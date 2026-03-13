@@ -1,0 +1,67 @@
+# SAM Template — defines your Lambda function and API Gateway
+#
+# How this works:
+# - AWS::Serverless::Function creates a Lambda function from your Python code
+# - The Events section creates an API Gateway that routes HTTP requests to it
+# - {proxy+} is a greedy path — it catches ALL routes and passes them to FastAPI
+#   so FastAPI's own routing (@app.get, @app.post) decides what runs
+# - Globals sets config shared across all functions (just one here)
+#
+# Deploy with: sam build && sam deploy --guided (first time)
+#              sam build && sam deploy          (after that)
+
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Portland Realtor Dashboard API
+
+Globals:
+  Function:
+    # 60s accounts for Gemini API latency + cold starts. Lambda max is 900s.
+    Timeout: 60
+    # 256MB is enough for FastAPI + HTTP calls. Bump if you add heavy libs.
+    MemorySize: 256
+    Runtime: python3.12
+    # Lambda environment variables — these become os.environ in your code
+    # Set real values with: sam deploy --parameter-overrides or in samconfig.toml
+    Environment:
+      Variables:
+        FRED_API_KEY: !Ref FredApiKey
+        GEMINI_API_KEY: !Ref GeminiApiKey
+
+# Parameters let you pass secrets at deploy time instead of hardcoding them
+Parameters:
+  FredApiKey:
+    Type: String
+    NoEcho: true
+    Description: FRED API key for economic data
+  GeminiApiKey:
+    Type: String
+    NoEcho: true
+    Description: Google Gemini API key for AI insights
+
+Resources:
+  RealtorDashboardFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      # handler.handler means: in handler.py, call the function named handler
+      Handler: handler.handler
+      CodeUri: .
+      Description: Realtor dashboard FastAPI backend
+      Events:
+        # Two routes needed: root path and all sub-paths
+        RootPath:
+          Type: Api
+          Properties:
+            Path: /
+            Method: ANY
+        ProxyPath:
+          Type: Api
+          Properties:
+            # {proxy+} catches /api/market, /api/insight, etc.
+            Path: /{proxy+}
+            Method: ANY
+
+Outputs:
+  ApiUrl:
+    Description: API Gateway URL
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"

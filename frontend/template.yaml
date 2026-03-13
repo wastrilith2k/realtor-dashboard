@@ -1,0 +1,104 @@
+# SAM Template — S3 bucket + CloudFront distribution for the React frontend
+#
+# What this creates:
+#   1. An S3 bucket to hold your built React files (HTML, JS, CSS)
+#   2. A CloudFront distribution (CDN) that sits in front of the bucket
+#   3. An Origin Access Control (OAC) so only CloudFront can read the bucket
+#      (the bucket itself stays private — no public access)
+#
+# How it works:
+#   - User hits your CloudFront URL → CloudFront checks its cache →
+#     if miss, fetches from S3 → caches and returns to user
+#   - CloudFront gives you HTTPS, caching, and a global CDN for free
+#   - The S3 bucket is just storage, not a web server
+#
+# Deploy with: sam deploy --guided (first time, from frontend/ directory)
+
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Portland Realtor Dashboard Frontend (S3 + CloudFront)
+
+Resources:
+  # The S3 bucket that holds your built files
+  FrontendBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "realtor-dashboard-frontend-${AWS::AccountId}"
+      # Block all public access — CloudFront is the only way in
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+
+  # Policy that lets CloudFront read from the bucket
+  FrontendBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref FrontendBucket
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: AllowCloudFrontAccess
+            Effect: Allow
+            Principal:
+              Service: cloudfront.amazonaws.com
+            Action: s3:GetObject
+            Resource: !Sub "${FrontendBucket.Arn}/*"
+            Condition:
+              StringEquals:
+                AWS:SourceArn: !Sub "arn:aws:cloudfront::${AWS::AccountId}:distribution/${CloudFrontDistribution}"
+
+  # Origin Access Control — tells CloudFront how to authenticate with S3
+  CloudFrontOAC:
+    Type: AWS::CloudFront::OriginAccessControl
+    Properties:
+      OriginAccessControlConfig:
+        Name: !Sub "realtor-dashboard-oac"
+        OriginAccessControlOriginType: s3
+        SigningBehavior: always
+        SigningProtocol: sigv4
+
+  # The CloudFront distribution (CDN)
+  CloudFrontDistribution:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        Enabled: true
+        Comment: Portland Realtor Dashboard
+        # Default page when someone hits the root URL
+        DefaultRootObject: index.html
+        Origins:
+          - Id: S3Origin
+            DomainName: !GetAtt FrontendBucket.RegionalDomainName
+            OriginAccessControlId: !Ref CloudFrontOAC
+            S3OriginConfig:
+              OriginAccessIdentity: ""
+        DefaultCacheBehavior:
+          # Where to route requests — matches the origin ID above
+          TargetOriginId: S3Origin
+          ViewerProtocolPolicy: redirect-to-https
+          # Use the managed caching policy for static content
+          CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6
+          Compress: true
+        # Handle SPA routing — when someone refreshes on /some/path,
+        # S3 returns 403 (file not found). This redirects to index.html
+        # so React Router can handle it.
+        CustomErrorResponses:
+          - ErrorCode: 403
+            ResponseCode: 200
+            ResponsePagePath: /index.html
+          - ErrorCode: 404
+            ResponseCode: 200
+            ResponsePagePath: /index.html
+
+Outputs:
+  BucketName:
+    Description: S3 bucket name for frontend files
+    Value: !Ref FrontendBucket
+  CloudFrontUrl:
+    Description: CloudFront URL for the dashboard
+    Value: !Sub "https://${CloudFrontDistribution.DomainName}"
+  DistributionId:
+    Description: CloudFront distribution ID (needed for cache invalidation)
+    Value: !Ref CloudFrontDistribution

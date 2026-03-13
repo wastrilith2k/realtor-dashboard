@@ -1,0 +1,12 @@
+.env
+node_modules/
+__pycache__/
+.venv/
+dist/
+*.pyc
+.DS_Store
+*.db
+*.sqlite
+.aws-sam/
+samconfig.toml
+.claude
