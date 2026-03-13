@@ -28,10 +28,10 @@ export function BuildingPermitsChart ({ data }: BuildingPermitsChartProps) {
           />
           <YAxis tick={{ fontSize: 12 }} />
           <Tooltip
-            formatter={(val: number) =>
-              [val.toLocaleString(), "Building Permits"]
+            formatter={(val) =>
+              [Number(val).toLocaleString(), "Building Permits"]
             }
-            labelFormatter={formatDateLong}
+            labelFormatter={(label) => formatDateLong(String(label))}
           />
           <Bar dataKey="value" fill="#1037b9" radius={[4, 4, 0, 0]} />
         </BarChart>

@@ -31,10 +31,10 @@ export function DaysOnMarketChart ({ data }: DaysOnMarketChartProps) {
             tickFormatter={(val: number) => `${val}d`}
           />
           <Tooltip
-            formatter={(val: number) =>
+            formatter={(val) =>
               [`${val} days`, "Days on Market"]
             }
-            labelFormatter={formatDateLong}
+            labelFormatter={(label) => formatDateLong(String(label))}
           />
           <Line
             type="monotone"

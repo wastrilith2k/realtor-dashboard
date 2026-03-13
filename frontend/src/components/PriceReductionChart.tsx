@@ -28,10 +28,10 @@ export function PriceReductionChart ({ data }: PriceReductionChartProps) {
           />
           <YAxis tick={{ fontSize: 12 }} />
           <Tooltip
-            formatter={(val: number) =>
-              [val.toLocaleString(), "Price Reductions"]
+            formatter={(val) =>
+              [Number(val).toLocaleString(), "Price Reductions"]
             }
-            labelFormatter={formatDateLong}
+            labelFormatter={(label) => formatDateLong(String(label))}
           />
           <Area
             type="monotone"

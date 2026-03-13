@@ -28,10 +28,10 @@ export function ActiveInventoryChart ({ data }: ActiveInventoryChartProps) {
           />
           <YAxis tick={{ fontSize: 12 }} />
           <Tooltip
-            formatter={(val: number) =>
-              [val.toLocaleString(), "Active Listings"]
+            formatter={(val) =>
+              [Number(val).toLocaleString(), "Active Listings"]
             }
-            labelFormatter={formatDateLong}
+            labelFormatter={(label) => formatDateLong(String(label))}
           />
           <Bar dataKey="value" fill="#10b981" radius={[4, 4, 0, 0]} />
         </BarChart>

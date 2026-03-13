@@ -5,7 +5,7 @@ import { DateRangeFilter } from "./components/DateRangeFilter";
 import { InsightsPanel } from "./components/InsightsPanel";
 import { fetchInsights } from "./lib/api";
 import { filterByDateRange } from "./lib/filterByDateRange";
-import type { Insight } from "./types/market";
+import type { Insight, MarketData } from "./types/market";
 
 function AppContent () {
   const [from, setFrom] = useState("2020-01");
@@ -25,7 +25,7 @@ function AppContent () {
     setInsightError(null);
 
     // Filter data to the visible date range before sending
-    const filtered: Record<string, unknown> = {};
+    const filtered: MarketData = {};
     for (const [seriesId, observations] of Object.entries(marketData)) {
       filtered[seriesId] = filterByDateRange(observations, from, to);
     }

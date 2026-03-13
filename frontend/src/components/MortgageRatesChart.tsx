@@ -31,10 +31,10 @@ export function MortgageRatesChart ({ data }: MortgageRatesChartProps) {
             tickFormatter={(val: number) => `${val}%`}
           />
           <Tooltip
-            formatter={(val: number) =>
+            formatter={(val) =>
               [`${val}%`, "Mortgage Rates"]
             }
-            labelFormatter={formatDateLong}
+            labelFormatter={(label) => formatDateLong(String(label))}
           />
           <Line
             type="monotone"

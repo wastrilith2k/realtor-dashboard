@@ -33,10 +33,10 @@ export function MedianPriceChart ({ data }: MedianPriceChartProps) {
             }
           />
           <Tooltip
-            formatter={(val: number) =>
-              [`$${val.toLocaleString()}`, "Median Price"]
+            formatter={(val) =>
+              [`$${Number(val).toLocaleString()}`, "Median Price"]
             }
-            labelFormatter={formatDateLong}
+            labelFormatter={(label) => formatDateLong(String(label))}
           />
           <Line
             type="monotone"
