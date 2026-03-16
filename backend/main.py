@@ -8,7 +8,7 @@ from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
 from tools.fred_client import market as fetch_market_data
-from tools.gemini_client import generate_insight, generate_insight_stream
+from tools.insights_client import generate_insight, generate_insight_stream
 
 # load_dotenv reads your .env file locally. On Lambda, env vars come from
 # the SAM template instead — os.environ works either way.

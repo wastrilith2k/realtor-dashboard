@@ -5,7 +5,7 @@ export interface ParsedInsight {
 
 export interface StreamingParseResult {
   finished: ParsedInsight[];
-  activeText: string;
+  active: ParsedInsight | null;
 }
 
 function parseBlock (block: string): ParsedInsight {
@@ -17,7 +17,7 @@ function parseBlock (block: string): ParsedInsight {
 /**
  * Parses a growing completion string in real-time.
  * - Completed blocks (before the last `---`) become finished insight cards
- * - The trailing block (after the last `---`) is still streaming
+ * - The trailing block (after the last `---`) is still streaming — tags stripped in real-time
  */
 export function parseStreamingCompletion (completion: string): StreamingParseResult {
   const parts = completion.split("---");
@@ -26,10 +26,11 @@ export function parseStreamingCompletion (completion: string): StreamingParseRes
   const finishedBlocks = parts.slice(0, -1).map((s) => s.trim()).filter(Boolean);
   const finished = finishedBlocks.map(parseBlock);
 
-  // The last segment is either actively streaming or the final block
-  const activeText = parts[parts.length - 1]?.trim() ?? "";
+  // The last segment is actively streaming — parse it the same way
+  const trailing = parts[parts.length - 1]?.trim() ?? "";
+  const active = trailing ? parseBlock(trailing) : null;
 
-  return { finished, activeText };
+  return { finished, active };
 }
 
 /**

@@ -26,7 +26,7 @@ Globals:
     Environment:
       Variables:
         FRED_API_KEY: !Ref FredApiKey
-        GEMINI_API_KEY: !Ref GeminiApiKey
+        OPEN_ROUTER_API_KEY: !Ref OpenRouterApiKey
 
 # Parameters let you pass secrets at deploy time instead of hardcoding them
 Parameters:
@@ -34,10 +34,10 @@ Parameters:
     Type: String
     NoEcho: true
     Description: FRED API key for economic data
-  GeminiApiKey:
+  OpenRouterApiKey:
     Type: String
     NoEcho: true
-    Description: Google Gemini API key for AI insights
+    Description: OpenRouter API key for AI insights
 
 Resources:
   RealtorDashboardFunction:

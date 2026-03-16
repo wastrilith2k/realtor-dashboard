@@ -2,8 +2,7 @@ import os
 from collections.abc import Generator
 from datetime import date
 
-from google import genai
-from google.genai import types
+from openai import OpenAI
 from pydantic import BaseModel
 
 
@@ -18,49 +17,60 @@ class Insight(BaseModel):
 class InsightResponse(BaseModel):
   insights: list[Insight]
 
+model = "google/gemini-2.5-flash"
+
 def format_series_names(series_names: dict[str, str]) -> str:
   """Formats the series_names dict into a string for the prompt."""
   return "\n".join(f"- {series_id}: {name}" for series_id, name in series_names.items())
 
 
 def generate_insight(market_data: dict, series_names: dict[str, str], prompt_template: str) -> list[dict]:
-  """Send market data + prompt to Gemini, return structured insights."""
-  client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
+  """Send market data + prompt to OpenRouter, return structured insights."""
+  client = OpenAI(
+    base_url="https://openrouter.ai/api/v1",
+    api_key=os.environ["OPEN_ROUTER_API_KEY"],
+  )
 
   # Inject today's date into the prompt template
   prompt = prompt_template.replace("{current_date}", date.today().isoformat())
 
   full_prompt = f"{prompt}\n\n## Market Data\n{market_data}\n\n## Series Names\n{format_series_names(series_names)}"
 
-  response = client.models.generate_content(
-    model="gemini-2.5-flash",
-    contents=full_prompt,
-    config=types.GenerateContentConfig(
-      # These two lines force Gemini to return valid JSON matching our schema.
-      # Without this, you'd be parsing free text and hoping for the best.
-      response_mime_type="application/json",
-      response_schema=InsightResponse,
-    ),
+  response = client.chat.completions.create(
+      model=model,
+      messages=[
+          {"role": "system", "content": full_prompt},
+          {"role": "user", "content": f"## Market Data\n{market_data}"},
+      ],
   )
 
   # response.text is now guaranteed to be valid JSON matching InsightResponse
-  parsed = InsightResponse.model_validate_json(response.text)
+  parsed = InsightResponse.model_validate_json(response.choices[0].message.content or "")
   return [insight.model_dump() for insight in parsed.insights]
 
 
 def generate_insight_stream(market_data: dict, series_names: dict[str, str], prompt_template: str) -> Generator[str, None, None]:
-  """Send market data + prompt to Gemini, return Generator of text chunks as insights stream in."""
-  client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
+  """Send market data + prompt to OpenRouter, return Generator of text chunks as insights stream in."""
+  client = OpenAI(
+    base_url="https://openrouter.ai/api/v1",
+    api_key=os.environ["OPEN_ROUTER_API_KEY"],
+  )
 
   # Inject today's date into the prompt template
   prompt = prompt_template.replace("{current_date}", date.today().isoformat()).replace("{series_names}", format_series_names(series_names))
 
   full_prompt = f"{prompt}\n\n## Market Data\n{market_data}"
 
-  stream = client.models.generate_content_stream(
-    model="gemini-2.5-flash",
-    contents=full_prompt,
+  stream = client.chat.completions.create(
+      model=model,
+      messages=[
+          {"role": "system", "content": full_prompt},
+          {"role": "user", "content": f"## Market Data\n{market_data}"},
+      ],
+      stream=True,
   )
 
   for chunk in stream:
-    yield chunk.text
+      text = chunk.choices[0].delta.content
+      if text:
+          yield text

@@ -36,9 +36,9 @@ export function InsightsPanel ({ completion, loading, error, open, onClose }: In
   // Derive display state from the completion string on every render.
   // During streaming: finished blocks become cards, trailing block is raw text.
   // After streaming: all blocks are finished cards.
-  const { finished, activeText } = loading
+  const { finished, active } = loading
     ? parseStreamingCompletion(completion)
-    : { finished: parseStreamedInsights(completion), activeText: "" };
+    : { finished: parseStreamedInsights(completion), active: null };
 
   const hasContent = completion.length > 0;
 
@@ -89,23 +89,47 @@ export function InsightsPanel ({ completion, loading, error, open, onClose }: In
                 <InsightCard key={i} insight={item} />
               ))}
 
-              {/* Actively streaming text below finished cards */}
-              {loading && activeText && (
+              {/* Actively streaming insight below finished cards */}
+              {loading && active && (
                 <div className="bg-gray-50 rounded-lg p-4 border border-gray-100 border-dashed">
                   <p className="text-sm text-gray-800 leading-relaxed whitespace-pre-wrap">
-                    {activeText}
+                    {active.text}
                   </p>
+                  {active.seriesIds.length > 0 && (
+                    <div className="mt-2 flex flex-wrap gap-1">
+                      {active.seriesIds.map((id) => (
+                        <span
+                          key={id}
+                          className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded"
+                        >
+                          {SERIES_NAMES[id] ?? id}
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
             </div>
           )}
 
           {/* Streaming but no delimiter yet — first insight still arriving */}
-          {loading && hasContent && finished.length === 0 && (
+          {loading && hasContent && finished.length === 0 && active && (
             <div className="bg-gray-50 rounded-lg p-4 border border-gray-100 border-dashed">
               <p className="text-sm text-gray-800 leading-relaxed whitespace-pre-wrap">
-                {activeText}
+                {active.text}
               </p>
+              {active.seriesIds.length > 0 && (
+                <div className="mt-2 flex flex-wrap gap-1">
+                  {active.seriesIds.map((id) => (
+                    <span
+                      key={id}
+                      className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded"
+                    >
+                      {SERIES_NAMES[id] ?? id}
+                    </span>
+                  ))}
+                </div>
+              )}
             </div>
           )}
 
