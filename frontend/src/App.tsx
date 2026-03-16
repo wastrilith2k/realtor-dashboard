@@ -1,28 +1,31 @@
 import { useState } from "react";
+import { useCompletion } from "@ai-sdk/react";
 import { MarketDataProvider, useMarketData } from "./hooks/useMarketData";
 import { Dashboard } from "./components/Dashboard";
 import { DateRangeFilter } from "./components/DateRangeFilter";
 import { InsightsPanel } from "./components/InsightsPanel";
-import { fetchInsights } from "./lib/api";
 import { filterByDateRange } from "./lib/filterByDateRange";
-import type { Insight, MarketData } from "./types/market";
+import type { MarketData } from "./types/market";
+import { SERIES_NAMES } from "./lib/seriesNames";
+
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 function AppContent () {
   const [from, setFrom] = useState("2020-01");
   const [to, setTo] = useState("2026-03");
   const [panelOpen, setPanelOpen] = useState(false);
-  const [insights, setInsights] = useState<Insight[]>([]);
-  const [insightLoading, setInsightLoading] = useState(false);
-  const [insightError, setInsightError] = useState<string | null>(null);
 
   const { marketData } = useMarketData();
+
+  const { completion, isLoading, error, complete } = useCompletion({
+    api: `${API_BASE_URL}/api/insight/stream`,
+    streamProtocol: "text",
+  });
 
   const handleGetInsights = async () => {
     if (!marketData) return;
 
     setPanelOpen(true);
-    setInsightLoading(true);
-    setInsightError(null);
 
     // Filter data to the visible date range before sending
     const filtered: MarketData = {};
@@ -30,14 +33,13 @@ function AppContent () {
       filtered[seriesId] = filterByDateRange(observations, from, to);
     }
 
-    try {
-      const result = await fetchInsights(filtered, from, to);
-      setInsights(result);
-    } catch (err) {
-      setInsightError(err instanceof Error ? err.message : "Unknown error");
-    } finally {
-      setInsightLoading(false);
-    }
+    await complete("analyze", {
+      body: {
+        market_data: filtered,
+        series_names: SERIES_NAMES,
+        date_range: { from_date: from, to_date: to },
+      },
+    });
   };
 
   return (
@@ -55,10 +57,10 @@ function AppContent () {
           />
           <button
             onClick={handleGetInsights}
-            disabled={insightLoading || !marketData}
+            disabled={isLoading || !marketData}
             className="w-full md:w-auto bg-blue-600 text-white px-6 py-2.5 rounded-lg text-sm font-semibold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
-            {insightLoading ? "Analyzing..." : "Get Insights"}
+            {isLoading ? "Analyzing..." : "Get Insights"}
           </button>
         </div>
       </header>
@@ -66,9 +68,9 @@ function AppContent () {
         <Dashboard from={from} to={to} />
       </main>
       <InsightsPanel
-        insights={insights}
-        loading={insightLoading}
-        error={insightError}
+        completion={completion}
+        loading={isLoading}
+        error={error?.message ?? null}
         open={panelOpen}
         onClose={() => setPanelOpen(false)}
       />

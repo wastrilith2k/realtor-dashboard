@@ -17,18 +17,14 @@ export async function fetchInsights(
   fromDate: string,
   toDate: string,
 ): Promise<Insight[]> {
-  // Map series IDs to human-readable names for the prompt
-  const namedData: Record<string, unknown> = {};
-  for (const [id, observations] of Object.entries(marketData)) {
-    namedData[SERIES_NAMES[id] ?? id] = observations;
-  }
 
   const response = await fetch(`${BASE_URL}/api/insight`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      market_data: namedData,
+      market_data: marketData,
       date_range: { from_date: fromDate, to_date: toDate },
+      series_names: SERIES_NAMES,
     }),
   });
 

@@ -8,7 +8,7 @@ interface ChartCardProps {
 
 export function ChartCard ({ title, subtitle, children }: ChartCardProps) {
   return (
-    <div className="bg-white rounded-lg p-5 md:p-7 shadow-md overflow-hidden">
+    <div className="bg-white rounded-lg p-5 md:p-7 shadow-md overflow-hidden animate-fade-in-up">
       <h2 className="text-lg font-semibold text-gray-800 mb-1">
         {title}
       </h2>

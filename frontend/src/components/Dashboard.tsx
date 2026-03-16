@@ -6,6 +6,7 @@ import { DaysOnMarketChart } from "./DaysOnMarketChart";
 import { PriceReductionChart } from "./PriceReductionChart";
 import { BuildingPermitsChart } from "./BuildingPermitsChart";
 import { MortgageRatesChart } from "./MortgageRatesChart";
+import { DashboardSkeleton } from "./ChartSkeleton";
 
 interface DashboardProps {
   from: string;
@@ -15,7 +16,7 @@ interface DashboardProps {
 export function Dashboard ({ from, to }: DashboardProps) {
   const { marketData, loading, error } = useMarketData();
 
-  if (loading) return <div className="p-8 text-gray-500">Loading...</div>;
+  if (loading) return <DashboardSkeleton chartCount={6} />;
   if (error) return <div className="p-8 text-red-500">Error: {error}</div>;
   if (!marketData) return null;
 
