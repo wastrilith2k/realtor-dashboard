@@ -24,6 +24,3 @@ uvicorn main:app --reload
 cd frontend
 npm install && npm run dev
 ```
-
-## Build Plan
-See `../docs/portland-realtor-demo-plan.docx`

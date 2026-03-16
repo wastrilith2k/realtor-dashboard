@@ -2,15 +2,20 @@ import type { ReactNode } from "react";
 
 interface ChartCardProps {
   title: string;
+  subtitle?: string;
   children: ReactNode;
 }
 
-export function ChartCard ({ title, children }: ChartCardProps) {
+export function ChartCard ({ title, subtitle, children }: ChartCardProps) {
   return (
-    <div className="bg-white rounded-lg p-6 shadow-sm overflow-hidden">
-      <h2 className="text-lg font-semibold text-gray-800 mb-4">
+    <div className="bg-white rounded-lg p-5 md:p-7 shadow-md overflow-hidden">
+      <h2 className="text-lg font-semibold text-gray-800 mb-1">
         {title}
       </h2>
+      {subtitle && (
+        <p className="text-xs text-gray-400 mb-4">{subtitle}</p>
+      )}
+      {!subtitle && <div className="mb-3" />}
       {children}
     </div>
   );

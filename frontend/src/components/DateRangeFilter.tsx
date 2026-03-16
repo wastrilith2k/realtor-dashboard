@@ -7,7 +7,6 @@ interface DateRangeFilterProps {
 
 export function DateRangeFilter ({ from, to, onFromChange, onToChange }: DateRangeFilterProps) {
 
-  console.log('DateRangeFilter rendered with from:', from, 'to:', to);
   return (
     <div className="flex items-center gap-4">
       <label className="flex items-center gap-2 text-sm text-gray-600">

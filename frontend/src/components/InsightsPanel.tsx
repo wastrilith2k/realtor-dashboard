@@ -38,11 +38,17 @@ export function InsightsPanel ({ insights, loading, error, open, onClose }: Insi
 
         <div className="p-6 overflow-y-auto h-[calc(100%-73px)]">
           {loading && (
-            <p className="text-gray-500 text-sm">Analyzing market data...</p>
+            <div className="flex flex-col items-center gap-3 pt-12">
+              <div className="h-8 w-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+              <p className="text-gray-500 text-sm">Analyzing market data...</p>
+            </div>
           )}
 
           {error && (
-            <p className="text-red-500 text-sm">Error: {error}</p>
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4 mt-2">
+              <p className="text-red-700 text-sm font-medium">Unable to generate insights</p>
+              <p className="text-red-500 text-xs mt-1">{error}</p>
+            </div>
           )}
 
           {!loading && !error && insights.length === 0 && (
