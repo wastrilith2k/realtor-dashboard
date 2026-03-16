@@ -10,3 +10,4 @@ dist/
 .aws-sam/
 samconfig.toml
 .claude
+CLAUDE.md

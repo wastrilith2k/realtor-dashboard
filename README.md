@@ -1,6 +1,6 @@
 # Portland Realtor Dashboard
 
-Real estate market dashboard for the Portland-Vancouver-Hillsboro metro area. Pulls live economic data from the FRED API and generates AI-powered market insights using Google Gemini.
+Real estate market dashboard for the Portland-Vancouver-Hillsboro metro area. Pulls live economic data from the FRED API and generates AI-powered market insights via OpenRouter.
 
 ## Architecture
 
@@ -9,20 +9,20 @@ React (Vite + Tailwind + Recharts)
         |
         v
 FastAPI backend
-   /api/market   --> FRED API (10 housing series, fetched concurrently)
-   /api/insight  --> Gemini 2.5 Flash (structured JSON output)
+   /api/market          --> FRED API (housing series, fetched concurrently)
+   /api/insight/stream  --> OpenRouter (streamed text, typewriter UI)
         |
         v
 AWS Lambda + API Gateway (via SAM + Mangum)
 ```
 
-**Frontend:** React 19, TypeScript, Tailwind CSS, Recharts for charts.
+**Frontend:** React 19, TypeScript, Tailwind CSS, Recharts for charts. Vercel AI SDK for streaming.
 
 **Backend:** FastAPI on Python 3.12. Runs locally with Uvicorn, deployed to Lambda via Mangum adapter.
 
-**Data:** FRED series for Portland metro -- active listings, median price, days on market, building permits, price index, mortgage rates, and more.
+**Data:** FRED series for Portland metro -- active listings, median price, days on market, building permits, price reductions, mortgage rates.
 
-**AI:** Gemini 2.5 Flash with structured output (Pydantic schema) generates market insights from the raw data.
+**AI:** OpenRouter (Gemini 2.5 Flash) streams market insights from the raw data. Frontend parses series tags and renders insight cards in real-time.
 
 ## Run locally
 
@@ -50,7 +50,7 @@ npm run dev
 | Variable | Source | Description |
 |---|---|---|
 | `FRED_API_KEY` | [fred.stlouisfed.org/docs/api](https://fred.stlouisfed.org/docs/api/) | Access to FRED economic data |
-| `GEMINI_API_KEY` | [aistudio.google.com](https://aistudio.google.com/) | Google Gemini for AI insights |
+| `OPEN_ROUTER_API_KEY` | [openrouter.ai](https://openrouter.ai/) | OpenRouter for AI insights |
 
 Copy `backend/.env.example` to `backend/.env` and fill in your keys.
 
