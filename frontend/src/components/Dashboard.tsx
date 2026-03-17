@@ -7,6 +7,7 @@ import { PriceReductionChart } from "./PriceReductionChart";
 import { BuildingPermitsChart } from "./BuildingPermitsChart";
 import { MortgageRatesChart } from "./MortgageRatesChart";
 import { DashboardSkeleton } from "./ChartSkeleton";
+import { MarketEventsLegend } from "./MarketEventsLegend";
 
 interface DashboardProps {
   from: string;
@@ -24,13 +25,16 @@ export function Dashboard ({ from, to }: DashboardProps) {
     filterByDateRange(marketData[seriesId] ?? [], from, to);
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-      <MedianPriceChart data={filter("MEDLISPRI38900")} />
-      <ActiveInventoryChart data={filter("ACTLISCOU38900")} />
-      <DaysOnMarketChart data={filter("MEDDAYONMAR38900")} />
-      <PriceReductionChart data={filter("PRIREDCOU38900")} />
-      <BuildingPermitsChart data={filter("PORT941BPPRIVSA")} />
-      <MortgageRatesChart data={filter("MORTGAGE30US")} />
+    <div className="flex flex-col gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <MedianPriceChart data={filter("MEDLISPRI38900")} />
+        <ActiveInventoryChart data={filter("ACTLISCOU38900")} />
+        <DaysOnMarketChart data={filter("MEDDAYONMAR38900")} />
+        <PriceReductionChart data={filter("PRIREDCOU38900")} />
+        <BuildingPermitsChart data={filter("PORT941BPPRIVSA")} />
+        <MortgageRatesChart data={filter("MORTGAGE30US")} />
+      </div>
+      <MarketEventsLegend />
     </div>
   );
 }
